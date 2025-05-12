@@ -2,12 +2,12 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>🎵 Youtubeでタイピングトレーニングをしよう！ 🎵</title>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2&family=Zen+Maru+Gothic:wght@500&display=swap" rel="stylesheet">
+  <title>🎵 歌詞タイピングチャレンジ 🎵</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
     body {
-      font-family: 'Baloo 2', 'Zen Maru Gothic', cursive;
+      font-family: 'Baloo 2', cursive;
       margin: 0;
       background: linear-gradient(to right, #fceabb, #f8b500);
       color: #333;
@@ -63,29 +63,11 @@
       margin-top: 20px;
     }
     #userInput {
-      font-family: 'Zen Maru Gothic', sans-serif;
-      font-size: 28px;
+      font-size: 24px;
       padding: 10px;
       width: 80%;
-      border: none;
-      background: none;
-      outline: none;
-      text-align: center;
-      animation: typingGlow 1s infinite alternate;
-    }
-    .shake {
-      animation: shake 0.3s;
-    }
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      50% { transform: translateX(5px); }
-      75% { transform: translateX(-5px); }
-      100% { transform: translateX(0); }
-    }
-    @keyframes typingGlow {
-      from { text-shadow: 0 0 5px #ffd54f; }
-      to { text-shadow: 0 0 15px #ff6f00; }
+      border: 2px solid #ffcc80;
+      border-radius: 10px;
     }
     #result {
       margin-top: 10px;
@@ -116,24 +98,25 @@
 </head>
 <body>
   <div id="sidebar">
-    <img class="thumbnail" src="https://img.youtube.com/vi/UdX345tIG2w/0.jpg" onclick="selectVideo('UdX345tIG2w', 'punk.json')">
-    <img class="thumbnail" src="https://img.youtube.com/vi/Jj1_mfUzjOs/0.jpg" onclick="selectVideo('Jj1_mfUzjOs', 'yoasobi.json')">
     <img class="thumbnail" src="https://img.youtube.com/vi/mdPUInNdlCc/0.jpg" onclick="selectVideo('mdPUInNdlCc', 'sand.json')">
+    <img class="thumbnail" src="https://img.youtube.com/vi/Jj1_mfUzjOs/0.jpg" onclick="selectVideo('Jj1_mfUzjOs', 'yoasobi.json')">
+    <!--
+    <img class="thumbnail" src="https://img.youtube.com/vi/NE2rQkhfjg4/0.jpg" onclick="selectVideo('NE2rQkhfjg4', 'nezunobu.json')">
+  -->
     <img class="thumbnail" src="https://img.youtube.com/vi/W-0lSiV-H7k/0.jpg" onclick="selectVideo('W-0lSiV-H7k', 'aiscream.json')">
     <img class="thumbnail" src="https://img.youtube.com/vi/SzbCg-H6eNg/0.jpg" onclick="selectVideo('SzbCg-H6eNg', 'kano.json')">
-    <img class="thumbnail" src="https://img.youtube.com/vi/QNYT9wVwQ8A/0.jpg" onclick="selectVideo('QNYT9wVwQ8A', 'mayonaka.json')">
     <img class="thumbnail" src="https://img.youtube.com/vi/ggcfxv9hL4c/0.jpg" onclick="selectVideo('ggcfxv9hL4c', 'webemon.json')">
+    <img class="thumbnail" src="https://img.youtube.com/vi/QNYT9wVwQ8A/0.jpg" onclick="selectVideo('QNYT9wVwQ8A', 'mayonaka.json')">
     <img class="thumbnail" src="https://img.youtube.com/vi/QEwDCz-HAYw/0.jpg" onclick="selectVideo('QEwDCz-HAYw', 'hanni.json')">
     <img class="thumbnail" src="https://img.youtube.com/vi/jxitY4YNkc0/0.jpg" onclick="selectVideo('jxitY4YNkc0', 'ichimotsu.json')">
-    <img class="thumbnail" src="https://img.youtube.com/vi/cG6oqawLRtI/0.jpg" onclick="selectVideo('cG6oqawLRtI', 'seiko.json')">
     <img class="thumbnail" src="https://img.youtube.com/vi/MKBsGfszwu8/0.jpg" onclick="selectVideo('MKBsGfszwu8', 'queen.json')">
-  
-    
-    
-    
+    <img class="thumbnail" src="https://img.youtube.com/vi/0E00Zuayv9Q/0.jpg" onclick="selectVideo('0E00Zuayv9Q', 'ppap.json')">
+    <img class="thumbnail" src="https://img.youtube.com/vi/hLevzROn9L4/0.jpg" onclick="selectVideo('hLevzROn9L4', 'yoshi.json')">
+    <img class="thumbnail" src="https://img.youtube.com/vi/UdX345tIG2w/0.jpg" onclick="selectVideo('UdX345tIG2w', 'punk.json')">
+    <img class="thumbnail" src="https://img.youtube.com/vi/cG6oqawLRtI/0.jpg" onclick="selectVideo('cG6oqawLRtI', 'seiko.json')">
   </div>
   <div id="main">
-    <h2>🎤 Youtubeでタイピングのトレーニングをしよう！ 🎤</h2>
+    <h2>🎤 タイピングでリズムに乗ろう！ 🎤</h2>
     <div id="player"></div>
     <div id="subtitle"></div>
     <div id="input-area">
@@ -195,11 +178,14 @@
       const currentTime = player.getCurrentTime();
       const subtitleDiv = document.getElementById('subtitle');
       const input = document.getElementById("userInput");
+
       let currentIndex = subtitles.findIndex(s => currentTime >= s.start && currentTime <= s.start + s.duration);
 
       if (currentIndex !== lastSubtitleIndex) {
-        if (currentSubtitleText) evaluateInput();
-        input.value = "";
+        if (currentSubtitleText) {
+          evaluateInput();
+          input.value = "";
+        }
         if (currentIndex !== -1) {
           const current = subtitles[currentIndex];
           subtitleDiv.innerText = current.text;
@@ -226,13 +212,9 @@
       document.getElementById("result").innerHTML = `整合率: ${similarity.toFixed(1)}%<br>平均整合率: ${average.toFixed(1)}%`;
       if (similarity >= 90) {
         showPopup("Good job!!");
-      } else {
-        input.classList.add("shake");
-        setTimeout(() => input.classList.remove("shake"), 300);
-        if (average <= 15) {
-          const msg = lowScoreMessages[Math.floor(Math.random() * lowScoreMessages.length)];
-          showPopup(msg);
-        }
+      } else if (average <= 15) {
+        const msg = lowScoreMessages[Math.floor(Math.random() * lowScoreMessages.length)];
+        showPopup(msg);
       }
       input.value = "";
     }
@@ -251,10 +233,15 @@
       input.focus();
       input.addEventListener("input", () => lastInputTime = Date.now());
       input.addEventListener("keydown", e => {
-        if (e.key === "Enter" && currentSubtitleText) evaluateInput();
+        if (e.key === "Enter" && currentSubtitleText) {
+          evaluateInput();
+        }
       });
+
       setInterval(() => {
-        if (document.activeElement !== input) input.focus();
+        if (document.activeElement !== input) {
+          input.focus();
+        }
       }, 2000);
     });
 
