@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>サムネイルで動画選択 & 字幕表示</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      background-color: #ffffff;
+      margin: 0;
+    }
+
+    #sidebar {
+      width: 180px;
+      padding: 10px;
+      background-color: #f2f2f2;
+      border-right: 1px solid #ccc;
+    }
+
+    .thumbnail {
+      width: 100%;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .thumbnail:hover {
+      border-color: #0077cc;
+    }
+
+    #main {
+      flex-grow: 1;
+      padding: 20px;
+      text-align: center;
+    }
+
+    #player {
+      width: 640px;
+      height: 360px;
+      margin: auto;
+    }
+
+    #subtitle {
+      margin-top: 20px;
+      font-size: 48px;
+      color: black;
+      background-color: #f0f0f0;
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <img class="thumbnail" src="https://img.youtube.com/vi/mdPUInNdlCc/0.jpg" onclick="selectVideo('mdPUInNdlCc', 'sand.json')" alt="sand">
+    <img class="thumbnail" src="https://img.youtube.com/vi/Jj1_mfUzjOs/0.jpg" onclick="selectVideo('Jj1_mfUzjOs', 'yoasobi.json')" alt="yoasobi">
+    <img class="thumbnail" src="https://img.youtube.com/vi/NE2rQkhfjg4/0.jpg" onclick="selectVideo('NE2rQkhfjg4', 'nezunobu.json')" alt="nezunobu">
+    <img class="thumbnail" src="https://img.youtube.com/vi/HH7ptfUnPSY/0.jpg" onclick="selectVideo('HH7ptfUnPSY', 'hiroyuki.json')" alt="hiroyuki"> 
+</div>
+
+  <div id="main">
+    <h2>YouTube 歌詞表示アプリ</h2>
+    <div id="player"></div>
+    <div id="subtitle"></div>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    let player;
+    let subtitles = [];
+
+    function onYouTubeIframeAPIReady() {
+      // 初期化しない（サムネイルクリックで初期化）
+    }
+
+    function selectVideo(videoId, jsonFile) {
+      fetch(jsonFile)
+        .then(res => res.json())
+        .then(data => {
+          subtitles = data;
+          if (player) {
+            player.loadVideoById(videoId);
+          } else {
+            player = new YT.Player('player', {
+              height: '360',
+              width: '640',
+              videoId: videoId,
+              events: {
+                'onReady': () => {
+                  player.playVideo();
+                  setInterval(updateSubtitle, 100);
+                }
+              }
+            });
+          }
+        })
+        .catch(err => {
+          console.error("字幕ファイル読み込み失敗:", err);
+          subtitles = [];
+        });
+    }
+
+    function updateSubtitle() {
+      if (!player || !player.getCurrentTime) return;
+      const currentTime = player.getCurrentTime();
+      const subtitleDiv = document.getElementById('subtitle');
+      const current = subtitles.find(s =>
+        currentTime >= s.start && currentTime <= s.start + s.duration
+      );
+      if (current) {
+        subtitleDiv.innerText = current.text;
+        subtitleDiv.style.display = 'block';
+      } else {
+        subtitleDiv.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>

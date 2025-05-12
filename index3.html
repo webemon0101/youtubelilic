@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>字幕整合率入力アプリ</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      background-color: #ffffff;
+      margin: 0;
+    }
+
+    #sidebar {
+      width: 180px;
+      padding: 10px;
+      background-color: #f2f2f2;
+      border-right: 1px solid #ccc;
+    }
+
+    .thumbnail {
+      width: 100%;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .thumbnail:hover {
+      border-color: #0077cc;
+    }
+
+    #main {
+      flex-grow: 1;
+      padding: 20px;
+      text-align: center;
+    }
+
+    #player {
+      width: 640px;
+      height: 360px;
+      margin: auto;
+    }
+
+    #subtitle {
+      margin-top: 20px;
+      font-size: 36px;
+      color: black;
+      background-color: #f0f0f0;
+      padding: 16px;
+      border-radius: 10px;
+      display: none;
+      white-space: pre-wrap;
+    }
+
+    #input-area {
+      margin-top: 20px;
+    }
+
+    #userInput {
+      font-size: 24px;
+      width: 80%;
+      padding: 10px;
+    }
+
+    #result {
+      margin-top: 10px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <img class="thumbnail" src="https://img.youtube.com/vi/mdPUInNdlCc/0.jpg" onclick="selectVideo('mdPUInNdlCc', 'sand.json')" alt="sand">
+    <img class="thumbnail" src="https://img.youtube.com/vi/Jj1_mfUzjOs/0.jpg" onclick="selectVideo('Jj1_mfUzjOs', 'yoasobi.json')" alt="yoasobi">
+    <img class="thumbnail" src="https://img.youtube.com/vi/NE2rQkhfjg4/0.jpg" onclick="selectVideo('NE2rQkhfjg4', 'nezunobu.json')" alt="nezunobu">
+    <img class="thumbnail" src="https://img.youtube.com/vi/HH7ptfUnPSY/0.jpg" onclick="selectVideo('HH7ptfUnPSY', 'hiroyuki.json')" alt="hiroyuki"> 
+  </div>
+
+  <div id="main">
+    <h2>YouTube 字幕整合率チェックアプリ</h2>
+    <div id="player"></div>
+    <div id="subtitle"></div>
+
+    <div id="input-area">
+      <input type="text" id="userInput" placeholder="字幕をタイプ..." />
+      <div id="result"></div>
+    </div>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    let player;
+    let subtitles = [];
+    let currentSubtitleText = "";
+    let currentSubtitleEnd = 0;
+    let scores = [];
+
+    function onYouTubeIframeAPIReady() {}
+
+    function selectVideo(videoId, jsonFile) {
+      fetch(jsonFile)
+        .then(res => res.json())
+        .then(data => {
+          subtitles = data;
+          if (player) {
+            player.loadVideoById(videoId);
+          } else {
+            player = new YT.Player('player', {
+              height: '360',
+              width: '640',
+              videoId: videoId,
+              events: {
+                'onReady': () => {
+                  player.playVideo();
+                  setInterval(updateSubtitle, 100);
+                }
+              }
+            });
+          }
+        })
+        .catch(err => {
+          console.error("字幕ファイル読み込み失敗:", err);
+          subtitles = [];
+        });
+    }
+
+    function updateSubtitle() {
+      if (!player || !player.getCurrentTime) return;
+      const currentTime = player.getCurrentTime();
+      const subtitleDiv = document.getElementById('subtitle');
+      const input = document.getElementById("userInput");
+
+      const current = subtitles.find(s =>
+        currentTime >= s.start && currentTime <= s.start + s.duration
+      );
+
+      if (current) {
+        subtitleDiv.innerText = current.text;
+        subtitleDiv.style.display = 'block';
+        currentSubtitleText = current.text;
+        currentSubtitleEnd = current.start + current.duration;
+      } else {
+        subtitleDiv.style.display = 'none';
+        currentSubtitleText = "";
+      }
+
+      // 字幕を過ぎたら入力欄を空に
+      if (currentTime > currentSubtitleEnd + 0.3) {
+        input.value = "";
+      }
+    }
+
+    // ユーザー入力処理
+    document.addEventListener("DOMContentLoaded", () => {
+      const input = document.getElementById("userInput");
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter" && currentSubtitleText) {
+          const userText = input.value.trim();
+          const correctText = currentSubtitleText.trim();
+          const similarity = calcSimilarity(userText, correctText);
+          scores.push(similarity);
+          const average = scores.reduce((a, b) => a + b, 0) / scores.length;
+          document.getElementById("result").innerHTML =
+            `整合率: ${similarity.toFixed(1)}%<br>平均整合率: ${average.toFixed(1)}%`;
+          input.value = "";
+        }
+      });
+    });
+
+    // Levenshtein距離による類似度算出
+    function calcSimilarity(a, b) {
+      const distance = levenshtein(a, b);
+      const maxLen = Math.max(a.length, b.length);
+      if (maxLen === 0) return 100.0;
+      return ((1 - distance / maxLen) * 100);
+    }
+
+    // Levenshtein距離の実装
+    function levenshtein(a, b) {
+      const m = a.length, n = b.length;
+      const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+      for (let i = 0; i <= m; i++) dp[i][0] = i;
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          dp[i][j] = Math.min(
+            dp[i - 1][j] + 1,     // 削除
+            dp[i][j - 1] + 1,     // 挿入
+            dp[i - 1][j - 1] + cost // 置換
+          );
+        }
+      }
+      return dp[m][n];
+    }
+  </script>
+</body>
+</html>
